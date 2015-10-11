@@ -1,0 +1,133 @@
+mkdir -p /etc/e-smith/templates-custom/etc/php.ini/              
+nano /etc/e-smith/templates-custom/etc/php.ini/12phptmpfolder
+
+then paste this and save the file by ctrl+x
+
+upload_tmp_dir = /tmp
+
+and then do
+
+signal-event console-save 
+----------------------
+If you want to erase this setting you have to remove the file and the folder if necessary
+
+rm /etc/e-smith/templates-custom/etc/php.ini/12phptmpfolder
+rm -rf /etc/e-smith/templates-custom/etc/php.ini/
+
+and
+
+signal-event console-save
+
+
+db accounts setprop ibayname PHPBaseDir /tmp/:/home/e-smith/files/ibays/ibayname/
+signal-event ibay-modify ibayname
+
+db accounts setprop test PHPBaseDir /tmp/:/home/e-smith/files/ibays/test/
+signal-event ibay-modify test
+
+resize_image('max','penguin.jpg','penguin_max.jpg',100,100);
+
+<?php
+2.   
+3.   function resize_image_max($image,$max_width,$max_height) {
+4.       $w = imagesx($image); //current width
+5.       $h = imagesy($image); //current height
+6.       if ((!$w) || (!$h)) { $GLOBALS['errors'][] = 'Image couldn\'t be resized because it wasn\'t a valid image.'; return false; }
+7.   
+8.       if (($w <= $max_width) && ($h <= $max_height)) { return $image; } //no resizing needed
+9.       
+10.      //try max width first...
+11.      $ratio = $max_width / $w;
+12.      $new_w = $max_width;
+13.      $new_h = $h * $ratio;
+14.      
+15.      //if that didn't work
+16.      if ($new_h > $max_height) {
+17.          $ratio = $max_height / $h;
+18.          $new_h = $max_height;
+19.          $new_w = $w * $ratio;
+20.      }
+21.      
+22.      $new_image = imagecreatetruecolor ($new_w, $new_h);
+23.      imagecopyresampled($new_image,$image, 0, 0, 0, 0, $new_w, $new_h, $w, $h);
+24.      return $new_image;
+25.  }
+26.  
+27.  ?>
+-----
+$uploadedfile = $_FILES['file']['tmp_name']; 
+$src = imagecreatefromjpeg($uploadedfile);        
+list($width, $height) = getimagesize($uploadedfile); 
+
+$tmp = imagecreatetruecolor(800, 600); 
+
+$filename = '/path/to/images/' . $_FILES['file']['name'];
+
+imagecopyresampled($tmp, $src, 0, 0, 0, 0, 800, 600, $width, $height); 
+imagejpeg($tmp, $filename, 100);
+--------
+
+
+function resize($newWidth, $targetFile, $originalFile) {
+
+    $info = getimagesize($originalFile);
+    $mime = $info['mime'];
+
+    switch ($mime) {
+            case 'image/jpeg':
+                    $image_create_func = 'imagecreatefromjpeg';
+                    $image_save_func = 'imagejpeg';
+                    $new_image_ext = 'jpg';
+                    break;
+
+            case 'image/png':
+                    $image_create_func = 'imagecreatefrompng';
+                    $image_save_func = 'imagepng';
+                    $new_image_ext = 'png';
+                    break;
+
+            case 'image/gif':
+                    $image_create_func = 'imagecreatefromgif';
+                    $image_save_func = 'imagegif';
+                    $new_image_ext = 'gif';
+                    break;
+
+            default: 
+                    throw Exception('Unknown image type.');
+    }
+
+    $img = $image_create_func($originalFile);
+    list($width, $height) = getimagesize($originalFile);
+
+    $newHeight = ($height / $width) * $newWidth;
+    $tmp = imagecreatetruecolor($newWidth, $newHeight);
+    imagecopyresampled($tmp, $img, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+    if (file_exists($targetFile)) {
+            unlink($targetFile);
+    }
+    $image_save_func($tmp, "$targetFile.$new_image_ext");
+}
+----------------------
+class ImgResizer {
+
+function ImgResizer($originalFile = '$newName') {
+    $this -> originalFile = $originalFile;
+}
+function resize($newWidth, $targetFile) {
+    if (empty($newWidth) || empty($targetFile)) {
+        return false;
+    }
+    $src = imagecreatefromjpeg($this -> originalFile);
+    list($width, $height) = getimagesize($this -> originalFile);
+    $newHeight = ($height / $width) * $newWidth;
+    $tmp = imagecreatetruecolor($newWidth, $newHeight);
+    imagecopyresampled($tmp, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+    if (file_exists($targetFile)) {
+        unlink($targetFile);
+    }
+    imagejpeg($tmp, $targetFile, 95);
+}
+
+}
