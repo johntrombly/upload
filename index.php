@@ -1,5 +1,6 @@
 <?php
 	{ // local vs production settings
+		$num_col = 3;  // Number of items per row
 		$sandbox = "no";
 		$sandbox = "yes";
 //		$sandbox = "dad";
@@ -1022,27 +1023,32 @@ $dblink->select_db($mydbf) or die("Error contacting inventory DBF " . $dblink->e
 					$q = "select * from $dbf_prefix" . "_item where cat_id = $d_quote" . $_SESSION['my_cat_id'] . "$d_quote order by s_desc";
 					$r = $dblink->query($q) or die ("Error Getting info from $dbf_prefix" . "_item in act list " . $dblink->error);
 					echo "<center><table border='1' cellspacing='0' cellpadding='4'>\n";
-					$color = 1;
+					$color = $num_col;
 					if ($r->num_rows > 0) {
 						while ($row = $r->fetch_array(MYSQLI_ASSOC)) {
-							$color = MeColorTR($color, 1);
+							if (gmp_div_r($color,$num_col) == 0) {
+								echo "<tr>";
+							}
 							$s_desc = $row["s_desc"];
 							$l_desc = $row["l_desc"];
 							$my_id = $row["id"];
 							$my_count = $row["my_count"];
 							echo "<td><center>( $my_count )<br>$s_desc<br><IMG title='$l_desc' src='./pics/" . $my_cat_id . "_$my_id" . ".jpg'><br></center>";
-							echo "<td><center><a href='$cgi?act=trans&my_id=$my_id&add=in'><IMG title='Add' src='add.png'></a>";
+							echo "<center><a href='$cgi?act=trans&my_id=$my_id&add=in'><IMG title='Add' src='add.png'></a>";
 							if ($my_count > 0) {
 								echo "<a href='$cgi?act=trans&my_id=$my_id&add=out'><IMG title='Remove' src='minus.png'></a>";
 							} else {
-	//							echo "<IMG title='No inventory to check out' src='nono.png'>";
+//								echo "<IMG title='No inventory to check out' src='nono.png'>";
 							}
 							echo "<a href='$cgi?act=del&my_id=$my_id&add=in'><IMG title='Delete from Inventory' src='delete.png'></a>";
 							echo "<br>";
 							echo "<a href='$cgi?act=modify&my_id=$my_id'><IMG title='Edit' src='edit.png'></a>";
 							echo "<a href='$cgi?act=upload&my_id=$my_id'><IMG title='Change Photo' src='picture.png'></a>";
-							echo "<a href='$cgi?act=activity&my_id=$my_id'><IMG title='History' src='list_edit.png'></center></a></td>";
-							echo "</tr>\n";
+							echo "<a href='$cgi?act=activity&my_id=$my_id'><IMG title='History' src='list_edit.png'></center></a></td>\n\n\n";
+							if (gmp_div_r($color,$num_col) ==  $num_col - 1) {
+								echo "</tr>\n";
+							}
+							$color = $color + 1;
 						}
 					} else {
 						echo "<p><h1>No items</h1></p>";
